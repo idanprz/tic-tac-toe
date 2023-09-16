@@ -25,7 +25,7 @@ const winningCombinations = [
 
 statusDisplay.innerHTML = currentPlayerTurn()
 
-function handleCellPlayed(clickedCell, clickedCellIndex) {
+function occupyCell(clickedCell, clickedCellIndex) {
     gameState[clickedCellIndex] = currentPlayer
     clickedCell.innerHTML = currentPlayer
 }
@@ -83,21 +83,27 @@ function handleCellClick(clickedCellEvent) {
     const clickedCell = clickedCellEvent.target
     const clickedCellIndex = parseInt(clickedCell.getAttribute('data-cell-index'))
 
-    if (gameState[clickedCellIndex] !== "" || !isGameActive) {
+    if (!isGameActive) {
+        alert("The game is over, restart to play a new game")
+        return
+    }
+    
+    if (gameState[clickedCellIndex] !== "") {
+        alert("This cell is already taken")
         return
     }
 
-    handleCellPlayed(clickedCell, clickedCellIndex)
+    occupyCell(clickedCell, clickedCellIndex)
     checkMatchOver()
 }
 
-function handleRestartGame() {
+function restartGame() {
     isGameActive = true
     currentPlayer = "X"
-    gameState = ["", "", "", "", "", "", "", "", ""]
     statusDisplay.innerHTML = currentPlayerTurn()
+    gameState.fill("")
     document.querySelectorAll('.cell').forEach(cell => cell.innerHTML = "")
 }
 
 document.querySelectorAll('.cell').forEach(cell => cell.addEventListener('click', handleCellClick))
-document.querySelector('.game--restart').addEventListener('click', handleRestartGame)
+document.querySelector('.game--restart').addEventListener('click', restartGame)
