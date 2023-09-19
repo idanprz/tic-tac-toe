@@ -1,3 +1,6 @@
+const NUMBER_OF_CELLS = 9
+const EMPTY = ""
+
 // status display element
 const statusDisplay = document.querySelector('.game--status')
 
@@ -6,21 +9,7 @@ const statusDisplay = document.querySelector('.game--status')
 let isGameActive = true
 let currentPlayer = "X"
 let AIsymbol = ""
-const gameState = new Array(9).fill("")
-
-// function initGame() {
-// prompt against AI and choose side
-AIsymbol = "O"
-// }
-
-// function init game (replace restart function), choose ai or not, if AI choose x or o
-// if AI is X make first move and wait for click
-
-// game messages
-const winningMessage = () => `Player ${currentPlayer} has won!`
-const drawMessage = () => `Game ended in a draw!`
-const currentPlayerTurn = () => `It's ${currentPlayer}'s turn`
-
+const gameState = new Array(NUMBER_OF_CELLS).fill("")
 // cell index combinations from which a win can occur
 const winningCombinations = [
     [0, 1, 2],
@@ -33,10 +22,23 @@ const winningCombinations = [
     [2, 4, 6]
 ]
 
+// function init game (replace restart function), choose ai or not, if AI choose x or o
+// if AI is X make first move and wait for click
+
+// game messages
+const winningMessage = () => `Player ${currentPlayer} has won!`
+const drawMessage = () => `Game ended in a draw!`
+const currentPlayerTurn = () => `It's ${currentPlayer}'s turn`
+
+initGame()
+
+
 statusDisplay.innerHTML = currentPlayerTurn()
 
 function occupyCell(clickedCell, clickedCellIndex) {
     gameState[clickedCellIndex] = currentPlayer
+    // console.log(clickedCell);
+    // console.log(clickedCell.innerHTML);
     clickedCell.innerHTML = currentPlayer
 }
 
@@ -58,14 +60,14 @@ function checkMatchOver() {
         return
     }
 
-    // changePlayer()
+    changePlayer()
 }
 
 function checkWin() {
     let isWin = false
 
     for (let i = 0; i < winningCombinations.length; i++) {
-        const currWinngingCombination = winningCombinations[i]
+        let currWinngingCombination = winningCombinations[i]
 
         // cells to check the player symbols for a win 
         let a = gameState[currWinngingCombination[0]]
@@ -73,7 +75,7 @@ function checkWin() {
         let c = gameState[currWinngingCombination[2]]
 
         if (a === b && b === c) {
-            if (a === '') {
+            if (EMPTY === a) {
                 continue
             }
 
@@ -91,7 +93,7 @@ function checkDraw() {
 
 function handleCellClick(clickedCellEvent) {
     const clickedCell = clickedCellEvent.target
-    console.log(clickedCell)
+    // console.log(clickedCell)
     const clickedCellIndex = parseInt(clickedCell.getAttribute('data-cell-index'))
 
     checkLegalMove(clickedCell, clickedCellIndex)
@@ -114,30 +116,67 @@ function checkLegalMove(clickedCell, clickedCellIndex) {
     makeMove(clickedCell, clickedCellIndex)
 
 
-    if ("" !== AIsymbol) {
-        // get random unoccupied cell
-        let randNum = 1
+    if ("" !== AIsymbol && isGameActive) {
+        playAI()
+    }
+}
 
-        console.log(document.querySelector(`[data-cell-index="${randNum}"]`));
-        makeMove(document.querySelector(`[data-cell-index="${randNum}"]`), 0)
+function playAI() {
+    // get random unoccupied cell
+    let randArr = [5, 7, 2, 6, 3, 1, 0, 8, 4]
+    let unoccupiedCellIndex = -1
 
+    for (let i = 0; i < gameState.length; i++) {
+        if ("" == gameState[randArr[i]]) {
+            unoccupiedCellIndex = randArr[i]
+            break
+        }
     }
 
-    // if AI turn, occupy random cell and checkMatchOver()
+    makeMove(document.querySelector(`[data-cell-index="${unoccupiedCellIndex}"]`), unoccupiedCellIndex)
 }
 
 function makeMove(clickedCell, clickedCellIndex) {
     occupyCell(clickedCell, clickedCellIndex)
     checkMatchOver()
-    changePlayer()
+    // changePlayer()
 }
 
 function restartGame() {
-    isGameActive = true
     currentPlayer = "X"
+    initGame()
+    isGameActive = true
     statusDisplay.innerHTML = currentPlayerTurn()
     gameState.fill("")
     document.querySelectorAll('.cell').forEach(cell => cell.innerHTML = "")
+}
+
+function initGame() {
+    let isAgainstAI = ""
+    // TODO make function
+    do {
+        isAgainstAI = prompt("Play against the computer? Y for yes, N for no").toUpperCase()
+        console.log(isAgainstAI);
+    } while ("Y" != isAgainstAI && "N" != isAgainstAI);
+    console.log(isAgainstAI);
+
+    if (!isAgainstAI) {
+        AIsymbol = ""
+        return
+    }
+
+    let playerSymbol = ""
+
+    do {
+        playerSymbol = prompt("Choose your symbol, X or O").toUpperCase()
+    } while ("X" != playerSymbol && "O" != playerSymbol);
+
+    if ("X" === playerSymbol) {
+        return
+    }
+
+    AIsymbol = "X"
+    playAI()
 }
 
 document.querySelectorAll('.cell').forEach(cell => cell.addEventListener('click', handleCellClick))

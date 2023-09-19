@@ -7,3 +7,9 @@ TODO:
 
 steps:
 O always random moves
+
+
+psuedo code:
+init game
+
+if ai && player is O => AI play first
