@@ -1,17 +1,15 @@
 const NUMBER_OF_CELLS = 9
-const EMPTY = ""
-
-// status display element
-const statusDisplay = document.querySelector('.game--status')
+const EMPTY_CELL = ""
+const PLAYER_VS_PLAYER_MATCH = ""
 
 // game dynamics variables
-// initGame()
-let isGameActive = true
-let currentPlayer = "X"
-let AIsymbol = ""
-const gameState = new Array(NUMBER_OF_CELLS).fill("")
-// cell index combinations from which a win can occur
-const winningCombinations = [
+let g_isGameActive = true
+let g_currentPlayer = "X"
+let g_AIsymbol = PLAYER_VS_PLAYER_MATCH
+const g_gameState = new Array(NUMBER_OF_CELLS).fill(EMPTY_CELL)
+
+// cell index combinations that result in a win
+const g_winningCombinations = [
     [0, 1, 2],
     [3, 4, 5],
     [6, 7, 8],
@@ -22,40 +20,96 @@ const winningCombinations = [
     [2, 4, 6]
 ]
 
-// function init game (replace restart function), choose ai or not, if AI choose x or o
-// if AI is X make first move and wait for click
+// status display element
+const g_statusDisplay = document.querySelector('.game--status')
 
-// game messages
-const winningMessage = () => `Player ${currentPlayer} has won!`
+// game status messages
+const winningMessage = () => `Player ${g_currentPlayer} has won!`
 const drawMessage = () => `Game ended in a draw!`
-const currentPlayerTurn = () => `It's ${currentPlayer}'s turn`
+const currentPlayerTurn = () => `It's ${g_currentPlayer}'s turn`
 
 initGame()
 
-statusDisplay.innerHTML = currentPlayerTurn()
+// #############################################################################
 
-function occupyCell(clickedCell, clickedCellIndex) {
-    gameState[clickedCellIndex] = currentPlayer
-    // console.log(clickedCell);
-    // console.log(clickedCell.innerHTML);
-    clickedCell.innerHTML = currentPlayer
+function initGame() {
+    g_currentPlayer = "X"
+    g_isGameActive = true
+    displayStatus(currentPlayerTurn())
+
+    let isAgainstAI = checkGameMode()
+
+    if ("N" === isAgainstAI) {
+        g_AIsymbol = PLAYER_VS_PLAYER_MATCH
+        return
+    }
+
+    if ("X" === checkPlayerSymbol()) {
+        g_AIsymbol = "O"
+    }
+    else {
+        g_AIsymbol = "X"
+        playAI()
+    }
 }
 
-function changePlayer() {
-    currentPlayer = currentPlayer === "X" ? "O" : "X"
-    statusDisplay.innerHTML = currentPlayerTurn()
+function checkGameMode() {
+    let isAgainstAI = ""
+
+    do {
+        isAgainstAI =
+            prompt("Play against the computer? Y for yes, N for no").toUpperCase()
+    } while ("Y" != isAgainstAI && "N" != isAgainstAI)
+
+    return isAgainstAI
+}
+
+function checkPlayerSymbol() {
+    let playerSymbol = ""
+
+    do {
+        playerSymbol = prompt("Choose your symbol, X or O").toUpperCase()
+    } while ("X" != playerSymbol && "O" != playerSymbol)
+
+    return playerSymbol
+}
+
+function playAI() {
+    // get random unoccupied cell
+    let randArr = [5, 7, 2, 6, 3, 1, 0, 8, 4] // TODO randomize array
+    let unoccupiedCellIndex = -1
+
+    for (let i = 0; i < g_gameState.length; i++) {
+        if (EMPTY_CELL == g_gameState[randArr[i]]) {
+            unoccupiedCellIndex = randArr[i]
+            break
+        }
+    }
+
+    makeMove(document.querySelector(`[data-cell-index="${unoccupiedCellIndex}"]`),
+        unoccupiedCellIndex)
+}
+
+function makeMove(clickedCell, clickedCellIndex) {
+    occupyCell(clickedCell, clickedCellIndex)
+    checkMatchOver()
+}
+
+function occupyCell(clickedCell, clickedCellIndex) {
+    g_gameState[clickedCellIndex] = g_currentPlayer
+    clickedCell.innerHTML = g_currentPlayer
 }
 
 function checkMatchOver() {
     if (checkWin()) {
-        statusDisplay.innerHTML = winningMessage()
-        isGameActive = false
+        displayStatus(winningMessage())
+        g_isGameActive = false
         return
     }
 
     if (checkDraw()) {
-        statusDisplay.innerHTML = drawMessage()
-        isGameActive = false
+        displayStatus(drawMessage())
+        g_isGameActive = false
         return
     }
 
@@ -65,16 +119,16 @@ function checkMatchOver() {
 function checkWin() {
     let isWin = false
 
-    for (let i = 0; i < winningCombinations.length; i++) {
-        let currWinngingCombination = winningCombinations[i]
+    for (let i = 0; i < g_winningCombinations.length; i++) {
+        let currWinngingCombination = g_winningCombinations[i]
 
         // cells to check the player symbols for a win 
-        let a = gameState[currWinngingCombination[0]]
-        let b = gameState[currWinngingCombination[1]]
-        let c = gameState[currWinngingCombination[2]]
+        let a = g_gameState[currWinngingCombination[0]]
+        let b = g_gameState[currWinngingCombination[1]]
+        let c = g_gameState[currWinngingCombination[2]]
 
         if (a === b && b === c) {
-            if (EMPTY === a) {
+            if (EMPTY_CELL === a) {
                 continue
             }
 
@@ -87,101 +141,54 @@ function checkWin() {
 }
 
 function checkDraw() {
-    return !gameState.includes("")
+    return !g_gameState.includes(EMPTY_CELL)
+}
+
+function changePlayer() {
+    g_currentPlayer = g_currentPlayer === "X" ? "O" : "X"
+    displayStatus(currentPlayerTurn())
 }
 
 function handleCellClick(clickedCellEvent) {
-    const clickedCell = clickedCellEvent.target
-    // console.log(clickedCell)
-    const clickedCellIndex = parseInt(clickedCell.getAttribute('data-cell-index'))
+    const clickedCellElement = clickedCellEvent.target
+    const clickedCellIndex =
+        parseInt(clickedCellElement.getAttribute('data-cell-index'))
 
-    checkLegalMove(clickedCell, clickedCellIndex)
+    checkLegalMove(clickedCellElement, clickedCellIndex)
 }
 
 function checkLegalMove(clickedCell, clickedCellIndex) {
-    // const clickedCell = clickedCellEvent.target
-    // const clickedCellIndex = parseInt(clickedCell.getAttribute('data-cell-index'))
-
-    if (!isGameActive) {
+    if (!g_isGameActive) {
         alert("The game is over, restart to play a new game")
         return
     }
 
-    if ("" !== gameState[clickedCellIndex]) {
+    if (EMPTY_CELL !== g_gameState[clickedCellIndex]) {
         alert("This cell is already taken")
         return
     }
 
     makeMove(clickedCell, clickedCellIndex)
 
-
-    if ("" !== AIsymbol && isGameActive) {
+    if (PLAYER_VS_PLAYER_MATCH !== g_AIsymbol && g_isGameActive) {
         playAI()
     }
 }
 
-function playAI() {
-    // get random unoccupied cell
-    let randArr = [5, 7, 2, 6, 3, 1, 0, 8, 4]
-    let unoccupiedCellIndex = -1
-
-    for (let i = 0; i < gameState.length; i++) {
-        if ("" == gameState[randArr[i]]) {
-            unoccupiedCellIndex = randArr[i]
-            break
-        }
-    }
-
-    makeMove(document.querySelector(`[data-cell-index="${unoccupiedCellIndex}"]`), unoccupiedCellIndex)
-}
-
-function makeMove(clickedCell, clickedCellIndex) {
-    occupyCell(clickedCell, clickedCellIndex)
-    checkMatchOver()
-    // changePlayer()
-}
-
 function restartGame() {
-    currentPlayer = "X"
-    isGameActive = true
-    statusDisplay.innerHTML = currentPlayerTurn() // TODO displayPlayerTurn()
-    // TODO clearBoard()
-    gameState.fill("")
-    document.querySelectorAll('.cell').forEach(cell => cell.innerHTML = "")
+    clearBoard()
     initGame()
 }
-
-function initGame() {
-    let isAgainstAI = ""
-    // TODO checkGameMode()
-    do {
-        isAgainstAI = prompt("Play against the computer? Y for yes, N for no").toUpperCase()
-    } while ("Y" != isAgainstAI && "N" != isAgainstAI);
-
-    if ("N" === isAgainstAI) {
-        AIsymbol = ""
-        return
-    }
-
-    // TODO checkPlayerSymbol()
-    let playerSymbol = ""
-
-    do {
-        playerSymbol = prompt("Choose your symbol, X or O").toUpperCase()
-    } while ("X" != playerSymbol && "O" != playerSymbol);
-
-    if ("X" === playerSymbol) {
-        AIsymbol = "O"
-        return
-    }
-    
-    AIsymbol = "X"
-    playAI()
+function clearBoard() {
+    g_gameState.fill(EMPTY_CELL)
+    document.querySelectorAll('.cell').forEach(cell => cell.innerHTML = EMPTY_CELL)
 }
 
-function checkGameMode(params) {
-    
+function displayStatus(status) {
+    g_statusDisplay.innerHTML = status
 }
 
-document.querySelectorAll('.cell').forEach(cell => cell.addEventListener('click', handleCellClick))
+// button event listeners
+document.querySelectorAll('.cell').forEach(cell =>
+    cell.addEventListener('click', handleCellClick))
 document.querySelector('.game--restart').addEventListener('click', restartGame)
