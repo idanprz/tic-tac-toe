@@ -32,7 +32,6 @@ const currentPlayerTurn = () => `It's ${currentPlayer}'s turn`
 
 initGame()
 
-
 statusDisplay.innerHTML = currentPlayerTurn()
 
 function occupyCell(clickedCell, clickedCellIndex) {
@@ -144,27 +143,27 @@ function makeMove(clickedCell, clickedCellIndex) {
 
 function restartGame() {
     currentPlayer = "X"
-    initGame()
     isGameActive = true
-    statusDisplay.innerHTML = currentPlayerTurn()
+    statusDisplay.innerHTML = currentPlayerTurn() // TODO displayPlayerTurn()
+    // TODO clearBoard()
     gameState.fill("")
     document.querySelectorAll('.cell').forEach(cell => cell.innerHTML = "")
+    initGame()
 }
 
 function initGame() {
     let isAgainstAI = ""
-    // TODO make function
+    // TODO checkGameMode()
     do {
         isAgainstAI = prompt("Play against the computer? Y for yes, N for no").toUpperCase()
-        console.log(isAgainstAI);
     } while ("Y" != isAgainstAI && "N" != isAgainstAI);
-    console.log(isAgainstAI);
 
-    if (!isAgainstAI) {
+    if ("N" === isAgainstAI) {
         AIsymbol = ""
         return
     }
 
+    // TODO checkPlayerSymbol()
     let playerSymbol = ""
 
     do {
@@ -172,11 +171,16 @@ function initGame() {
     } while ("X" != playerSymbol && "O" != playerSymbol);
 
     if ("X" === playerSymbol) {
+        AIsymbol = "O"
         return
     }
-
+    
     AIsymbol = "X"
     playAI()
+}
+
+function checkGameMode(params) {
+    
 }
 
 document.querySelectorAll('.cell').forEach(cell => cell.addEventListener('click', handleCellClick))
