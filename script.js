@@ -75,19 +75,40 @@ function checkPlayerSymbol() {
 }
 
 function playAI() {
-    // get random unoccupied cell
-    let randArr = [5, 7, 2, 6, 3, 1, 0, 8, 4] // TODO randomize array
-    let unoccupiedCellIndex = -1
+    const EMPTY_CELL = -1
+    // get a random unoccupied cell
+    let randArr = getRandUniqueArray(0, NUMBER_OF_CELLS - 1)
+    console.log(randArr);
+    let emptyCellIndex = EMPTY_CELL
 
     for (let i = 0; i < g_gameState.length; i++) {
         if (EMPTY_CELL == g_gameState[randArr[i]]) {
-            unoccupiedCellIndex = randArr[i]
+            emptyCellIndex = randArr[i]
             break
         }
     }
 
-    makeMove(document.querySelector(`[data-cell-index="${unoccupiedCellIndex}"]`),
-        unoccupiedCellIndex)
+    makeMove(document.querySelector(`[data-cell-index="${emptyCellIndex}"]`),
+        emptyCellIndex)
+}
+
+function getRandUniqueArray(min, max) {
+    const len = max - min + 1
+    const arr = new Array(max - min + 1)
+
+    for (let i = 0; i < len; i++) {
+        const randNum = getRandInteger(min, max - 1)
+
+        if (true !== arr.includes(randNum)) {
+            arr.push(randNum)
+        }
+    }
+
+    return arr
+}
+
+function getRandInteger(min, max) {
+    return Math.floor(Math.random() * (max - min) ) + min
 }
 
 function makeMove(clickedCell, clickedCellIndex) {

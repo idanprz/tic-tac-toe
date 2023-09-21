@@ -3,13 +3,7 @@ Inspired by https://dev.to/bornasepic/pure-and-simple-tic-tac-toe-with-javascrip
 
 
 TODO:
-- switch between players and AI
-
-steps:
-O always random moves
+- random board nums
+- documentation
 
 
-psuedo code:
-init game
-
-if ai && player is O => AI play first
