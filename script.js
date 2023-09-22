@@ -1,11 +1,11 @@
 const NUMBER_OF_CELLS = 9
 const EMPTY_CELL = ""
-const PLAYER_VS_PLAYER_MATCH = ""
+const NOT_AI = ""
 
 // game dynamics variables
 let g_isGameActive = true
-let g_currentPlayer = "X"
-let g_AIsymbol = PLAYER_VS_PLAYER_MATCH
+let g_currentPlayerSymbol = "X"
+let g_AIsymbol = NOT_AI
 const g_gameState = new Array(NUMBER_OF_CELLS).fill(EMPTY_CELL)
 
 // cell index combinations that result in a win
@@ -20,34 +20,34 @@ const g_winningCombinations = [
     [2, 4, 6]
 ]
 
+// a randomized array that holds the next positions for the AI to play
 let g_AImovesArr = null
 
 // status display element
 const g_statusDisplay = document.querySelector('.game--status')
 
 // game status messages
-const winningMessage = () => `Player ${g_currentPlayer} has won!`
+const winningMessage = () => `Player ${g_currentPlayerSymbol} has won!`
 const drawMessage = () => `Game ended in a draw!`
-const currentPlayerTurn = () => `It's ${g_currentPlayer}'s turn`
+const currentPlayerTurn = () => `It's ${g_currentPlayerSymbol}'s turn`
 
 initGame()
 
 // #############################################################################
 
 function initGame() {
-    g_currentPlayer = "X"
+    g_currentPlayerSymbol = "X"
     g_isGameActive = true
     displayStatus(currentPlayerTurn())
 
     let isAgainstAI = checkGameMode()
 
     if ("N" === isAgainstAI) {
-        g_AIsymbol = PLAYER_VS_PLAYER_MATCH
+        g_AIsymbol = NOT_AI
         return
     }
 
     g_AImovesArr = getRandUniqueArray(0, NUMBER_OF_CELLS - 1)
-    console.log(g_AImovesArr);
 
     if ("X" === checkPlayerSymbol()) {
         g_AIsymbol = "O"
@@ -64,7 +64,7 @@ function checkGameMode() {
     do {
         isAgainstAI =
             prompt("Play against the computer? Y for yes, N for no").toUpperCase()
-    } while ("Y" != isAgainstAI && "N" != isAgainstAI)
+    } while ("Y" !== isAgainstAI && "N" !== isAgainstAI)
 
     return isAgainstAI
 }
@@ -74,7 +74,7 @@ function checkPlayerSymbol() {
 
     do {
         playerSymbol = prompt("Choose your symbol, X or O").toUpperCase()
-    } while ("X" != playerSymbol && "O" != playerSymbol)
+    } while ("X" !== playerSymbol && "O" !== playerSymbol)
 
     return playerSymbol
 }
@@ -91,38 +91,18 @@ function playAI() {
         }
     }
 
-    makeMove(document.querySelector(`[data-cell-index="${emptyCellIndex}"]`),
+    occupyCell(document.querySelector(`[data-cell-index="${emptyCellIndex}"]`),
         emptyCellIndex)
 }
 
-function getRandUniqueArray(min, max) {
-    const len = max - min + 1
-    const arr = new Array(0)
-
-    for (let i = 0; i < len; ) {
-        const randNum = getRandInteger(min, max)
-
-        if (true !== arr.includes(randNum)) {
-            arr.push(randNum)
-            i++
-        }
-    }
-
-    return arr
-}
-
-function getRandInteger(min, max) {
-    return Math.floor(Math.random() * (max - min + 1) ) + min
-}
-
-function makeMove(clickedCell, clickedCellIndex) {
-    occupyCell(clickedCell, clickedCellIndex)
+function occupyCell(clickedCellElement, clickedCellIndex) {
+    markOccupied(clickedCellElement, clickedCellIndex)
     checkMatchOver()
 }
 
-function occupyCell(clickedCell, clickedCellIndex) {
-    g_gameState[clickedCellIndex] = g_currentPlayer
-    clickedCell.innerHTML = g_currentPlayer
+function markOccupied(clickedCellElement, clickedCellIndex) {
+    g_gameState[clickedCellIndex] = g_currentPlayerSymbol
+    clickedCellElement.innerHTML = g_currentPlayerSymbol
 }
 
 function checkMatchOver() {
@@ -170,7 +150,7 @@ function checkDraw() {
 }
 
 function changePlayer() {
-    g_currentPlayer = g_currentPlayer === "X" ? "O" : "X"
+    g_currentPlayerSymbol = g_currentPlayerSymbol === "X" ? "O" : "X"
     displayStatus(currentPlayerTurn())
 }
 
@@ -193,9 +173,10 @@ function checkLegalMove(clickedCell, clickedCellIndex) {
         return
     }
 
-    makeMove(clickedCell, clickedCellIndex)
+    occupyCell(clickedCell, clickedCellIndex)
 
-    if (PLAYER_VS_PLAYER_MATCH !== g_AIsymbol && g_isGameActive) {
+    // check if against AI && game is active
+    if (NOT_AI !== g_AIsymbol && g_isGameActive) {
         playAI()
     }
 }
@@ -214,7 +195,30 @@ function displayStatus(status) {
     g_statusDisplay.innerHTML = status
 }
 
-// button event listeners
+// ########################## button event listeners ###########################
+
 document.querySelectorAll('.cell').forEach(cell =>
     cell.addEventListener('click', handleCellClick))
 document.querySelector('.game--restart').addEventListener('click', restartGame)
+
+// ############################# utility functions #############################
+
+function getRandUniqueArray(min, max) {
+    const len = max - min + 1
+    const arr = new Array(0)
+
+    for (let i = 0; i < len; ) {
+        const randNum = getRandInteger(min, max)
+
+        if (true !== arr.includes(randNum)) {
+            arr.push(randNum)
+            i++
+        }
+    }
+
+    return arr
+}
+
+function getRandInteger(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min
+}
