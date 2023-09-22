@@ -20,6 +20,8 @@ const g_winningCombinations = [
     [2, 4, 6]
 ]
 
+let g_AImovesArr = null
+
 // status display element
 const g_statusDisplay = document.querySelector('.game--status')
 
@@ -43,6 +45,9 @@ function initGame() {
         g_AIsymbol = PLAYER_VS_PLAYER_MATCH
         return
     }
+
+    g_AImovesArr = getRandUniqueArray(0, NUMBER_OF_CELLS - 1)
+    console.log(g_AImovesArr);
 
     if ("X" === checkPlayerSymbol()) {
         g_AIsymbol = "O"
@@ -75,15 +80,13 @@ function checkPlayerSymbol() {
 }
 
 function playAI() {
-    const EMPTY_CELL = -1
+    const EMPTY_CELL = ""
+    
     // get a random unoccupied cell
-    let randArr = getRandUniqueArray(0, NUMBER_OF_CELLS - 1)
-    console.log(randArr);
-    let emptyCellIndex = EMPTY_CELL
-
+    let emptyCellIndex = -1
     for (let i = 0; i < g_gameState.length; i++) {
-        if (EMPTY_CELL == g_gameState[randArr[i]]) {
-            emptyCellIndex = randArr[i]
+        if (EMPTY_CELL === g_gameState[g_AImovesArr[i]]) {
+            emptyCellIndex = g_AImovesArr[i]
             break
         }
     }
@@ -94,13 +97,14 @@ function playAI() {
 
 function getRandUniqueArray(min, max) {
     const len = max - min + 1
-    const arr = new Array(max - min + 1)
+    const arr = new Array(0)
 
-    for (let i = 0; i < len; i++) {
-        const randNum = getRandInteger(min, max - 1)
+    for (let i = 0; i < len; ) {
+        const randNum = getRandInteger(min, max)
 
         if (true !== arr.includes(randNum)) {
             arr.push(randNum)
+            i++
         }
     }
 
@@ -108,7 +112,7 @@ function getRandUniqueArray(min, max) {
 }
 
 function getRandInteger(min, max) {
-    return Math.floor(Math.random() * (max - min) ) + min
+    return Math.floor(Math.random() * (max - min + 1) ) + min
 }
 
 function makeMove(clickedCell, clickedCellIndex) {
@@ -202,7 +206,8 @@ function restartGame() {
 }
 function clearBoard() {
     g_gameState.fill(EMPTY_CELL)
-    document.querySelectorAll('.cell').forEach(cell => cell.innerHTML = EMPTY_CELL)
+    document.querySelectorAll('.cell').forEach(cell => 
+        cell.innerHTML = EMPTY_CELL)
 }
 
 function displayStatus(status) {
